@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>WhatsApp Ban Checker</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding: 24px; max-width: 640px; margin: auto; }
+    input, button { padding: 8px 12px; font-size: 16px; }
+    button { margin-left: 8px; }
+    pre { background:#111; color:#e6e6e6; padding:12px; border-radius:6px; overflow:auto; }
+  </style>
+</head>
+<body>
+  <h1>WhatsApp Ban Checker</h1>
+  <p>Enter number with country code (E.164 recommended): <code>+628123...</code></p>
+  <input id="num" placeholder="+628123..." />
+  <button id="check">Check</button>
+  <p id="status"></p>
+  <pre id="out"></pre>
+
+<script>
+document.getElementById('check').addEventListener('click', async () => {
+  const n = document.getElementById('num').value.trim();
+  if (!n) return alert('Enter number');
+  document.getElementById('status').innerText = 'Checking…';
+  document.getElementById('out').innerText = '';
+  try {
+    const resp = await fetch('/api/check-ban', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number: n })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      document.getElementById('status').innerText = `Error: ${data?.error || resp.status}`;
+      document.getElementById('out').innerText = JSON.stringify(data, null, 2);
+      return;
+    }
+    document.getElementById('status').innerText = data.banned ? '🚫 Number is banned' : '✅ Number is active';
+    document.getElementById('out').innerText = JSON.stringify(data, null, 2);
+  } catch (err) {
+    document.getElementById('status').innerText = 'Network error';
+    document.getElementById('out').innerText = String(err);
+  }
+});
+</script>
+</body>
+</html>
